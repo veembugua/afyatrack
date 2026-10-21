@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  /* Clinical Teal - Trust, Health, Calm */
+  --color-clinical-50: #f0fdfa;
+  --color-clinical-100: #ccfbf1;
+  --color-clinical-200: #99f6e4;
+  --color-clinical-300: #5eead4;
+  --color-clinical-400: #2dd4bf;
+  --color-clinical-500: #14b8a6;
+  --color-clinical-600: #0d9488;
+  --color-clinical-700: #0f766e;
+  --color-clinical-800: #115e59;
+  --color-clinical-900: #134e4a;
+
+  /* Warm Neutrals - Friendly, Approachable */
+  --color-warm-50: #fefdfb;
+  --color-warm-100: #fdf8f3;
+  --color-warm-200: #f9ede0;
+  --color-warm-300: #f3dcc5;
+  --color-warm-400: #e8c49a;
+  --color-warm-500: #d9a76a;
+  --color-warm-600: #c08a4a;
+  --color-warm-700: #9c6d3a;
+  --color-warm-800: #7a5430;
+  --color-warm-900: #5c3f24;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Semantic Tokens */
+  --color-primary: var(--color-clinical-600);
+  --color-primary-hover: var(--color-clinical-700);
+  --color-primary-light: var(--color-clinical-50);
+  --color-background: var(--color-warm-50);
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+
+  /* Typography - Clean, readable, medical */
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Inter", sans-serif;
+
+  /* Shadows - Soft, clinical */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+}
+
+/* Base Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Clinical Card Style */
+.card-clinical {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.card-clinical:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Vaccine Status Pills */
+.pill-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.pill-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+.pill-missed {
+  background: #fee2e2;
+  color: #991b1b;
+}
