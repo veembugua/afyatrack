@@ -3,7 +3,9 @@ import { Toaster } from "react-hot-toast";
 import { type ReactNode } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import ParentDashboard from "./pages/parent/Dashboard";
+import AddChild from "./pages/parent/AddChild";
 import HealthWorkerDashboard from "./pages/healthWorker/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 
@@ -45,12 +47,16 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       <Route
         path="/parent/*"
         element={
           <ProtectedRoute allowedRoles={["parent"]}>
-            <ParentDashboard />
+            <Routes>
+              <Route path="/" element={<ParentDashboard />} />
+              <Route path="/children/add" element={<AddChild />} />
+            </Routes>
           </ProtectedRoute>
         }
       />
