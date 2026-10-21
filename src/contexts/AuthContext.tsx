@@ -30,15 +30,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      console.log("🔍 Auth State Changed. Firebase User:", fbUser?.uid);
       setFirebaseUser(fbUser);
 
       if (fbUser) {
         const userDoc = await getDoc(doc(db, "users", fbUser.uid));
+        console.log("📄 Firestore User Doc Exists:", userDoc.exists());
+
         if (userDoc.exists()) {
           const userData = userDoc.data() as User;
+          console.log("✅ User data loaded:", {
+            name: userData.name,
+            role: userData.role,
+            email: userData.email,
+          });
           setUser({ ...userData, uid: fbUser.uid });
+        } else {
+          console.warn("⚠️ No Firestore document found for UID:", fbUser.uid);
         }
       } else {
+        console.log("❌ User signed out");
         setUser(null);
       }
 

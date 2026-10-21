@@ -106,23 +106,52 @@ const ParentDashboard = () => {
               {children.map((child) => (
                 <div
                   key={child.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-clinical-300 hover:shadow-sm transition"
+                  className="p-5 border border-gray-200 rounded-xl hover:border-clinical-300 hover:shadow-md transition bg-white"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="h-12 w-12 rounded-full bg-clinical-100 flex items-center justify-center text-clinical-700 text-xl">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="h-14 w-14 rounded-full bg-clinical-100 flex items-center justify-center text-clinical-700 text-2xl flex-shrink-0">
                       {child.gender === "male" ? "👦" : "👧"}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-bold text-lg text-gray-900">
                         {child.firstName} {child.lastName}
                       </h3>
                       <p className="text-sm text-gray-500">
                         {calculateAge(child.dateOfBirth)} old
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        Born: {new Date(child.dateOfBirth).toLocaleDateString()}
+                        DOB: {new Date(child.dateOfBirth).toLocaleDateString()}
                       </p>
                     </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <div className="text-center p-2 bg-warm-50 rounded-lg">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Vaccines
+                      </div>
+                      <div className="text-lg font-bold text-clinical-700">
+                        View
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-warm-50 rounded-lg">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Growth
+                      </div>
+                      <div className="text-lg font-bold text-warm-600">
+                        View
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <Link
+                      to={`/parent/children/${child.id}/vaccinations`}
+                      className="flex-1 text-center py-2 bg-clinical-600 text-white rounded-lg text-sm font-medium hover:bg-clinical-700 transition"
+                    >
+                      Manage Health Record
+                    </Link>
                   </div>
                 </div>
               ))}

@@ -8,6 +8,7 @@ import ParentDashboard from "./pages/parent/Dashboard";
 import AddChild from "./pages/parent/AddChild";
 import HealthWorkerDashboard from "./pages/healthWorker/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import ChildVaccinations from "./pages/parent/ChildVaccinations";
 
 const ProtectedRoute = ({
   children,
@@ -56,6 +57,10 @@ const AppRoutes = () => {
             <Routes>
               <Route path="/" element={<ParentDashboard />} />
               <Route path="/children/add" element={<AddChild />} />
+              <Route
+                path="/children/:childId/vaccinations"
+                element={<ChildVaccinations />}
+              />
             </Routes>
           </ProtectedRoute>
         }
