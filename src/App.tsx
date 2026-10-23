@@ -10,6 +10,8 @@ import HealthWorkerDashboard from "./pages/healthWorker/Dashboard";
 import RecordVaccination from "./pages/healthWorker/RecordVaccination";
 import AdminDashboard from "./pages/admin/Dashboard";
 import { getDashboardPath } from "./utils/routePaths";
+import RecordGrowth from "./pages/healthWorker/RecordGrowth";
+import ChildGrowth from "./pages/parent/ChildGrowth";
 
 const ProtectedRoute = ({
   children,
@@ -67,6 +69,10 @@ function AppRoutes() {
                 path="/children/:childId/vaccinations"
                 element={<ChildVaccinations />}
               />
+              <Route
+                path="/children/:childId/growth"
+                element={<ChildGrowth />}
+              />
             </Routes>
           </ProtectedRoute>
         }
@@ -81,6 +87,10 @@ function AppRoutes() {
               <Route
                 path="/children/:childId/record-vaccine"
                 element={<RecordVaccination />}
+              />
+              <Route
+                path="/children/:childId/record-growth"
+                element={<RecordGrowth />}
               />
             </Routes>
           </ProtectedRoute>

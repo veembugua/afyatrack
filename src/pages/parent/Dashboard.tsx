@@ -148,24 +148,30 @@ const ParentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Quick Stats */}
+                  {/* Quick Stats - Now Clickable */}
                   <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-100">
-                    <div className="text-center p-2 bg-warm-50 rounded-lg">
+                    <Link
+                      to={`/parent/children/${child.id}/vaccinations`}
+                      className="text-center p-2 bg-warm-50 rounded-lg hover:bg-warm-100 transition cursor-pointer block"
+                    >
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
                         Vaccines
                       </div>
                       <div className="text-lg font-bold text-clinical-700">
                         View
                       </div>
-                    </div>
-                    <div className="text-center p-2 bg-warm-50 rounded-lg">
+                    </Link>
+                    <Link
+                      to={`/parent/children/${child.id}/growth`}
+                      className="text-center p-2 bg-warm-50 rounded-lg hover:bg-warm-100 transition cursor-pointer block"
+                    >
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
                         Growth
                       </div>
                       <div className="text-lg font-bold text-warm-600">
                         View
                       </div>
-                    </div>
+                    </Link>
                   </div>
 
                   <div className="mt-4 flex gap-2">

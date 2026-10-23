@@ -144,13 +144,22 @@ const HealthWorkerDashboard = () => {
                         ID: {child.parentId.slice(0, 8)}...
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <Link
-                          to={`/health-worker/children/${child.id}/record-vaccine`}
-                          aria-label={`Record vaccination for ${child.firstName} ${child.lastName}`}
-                          className="inline-block px-4 py-2 bg-clinical-600 text-white rounded-lg text-sm font-medium hover:bg-clinical-700 transition"
-                        >
-                          Record Vaccination
-                        </Link>
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            to={`/health-worker/children/${child.id}/record-growth`}
+                            aria-label={`Record growth for ${child.firstName} ${child.lastName}`}
+                            className="inline-block px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+                          >
+                            Record Growth
+                          </Link>
+                          <Link
+                            to={`/health-worker/children/${child.id}/record-vaccine`}
+                            aria-label={`Record vaccination for ${child.firstName} ${child.lastName}`}
+                            className="inline-block px-3 py-2 bg-clinical-600 text-white rounded-lg text-sm font-medium hover:bg-clinical-700 transition"
+                          >
+                            Record Vaccination
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

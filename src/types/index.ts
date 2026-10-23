@@ -105,3 +105,16 @@ export interface HealthFacility {
   coordinates?: { lat: number; lng: number };
   createdAt: Date;
 }
+
+export interface GrowthRecord {
+  id: string;
+  childId: string;
+  measurementDate: string; // ✅ Renamed to avoid conflict with existing 'date: Date'
+  weight: number;
+  height: number;
+  headCircumference?: number;
+  notes?: string;
+  recordedBy: string;
+  facilityId: string;
+  createdAt: Date | null; // ✅ Replaced 'any' with a proper type
+}
