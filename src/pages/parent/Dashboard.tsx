@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { subscribeChildrenByParent } from "../../services/childService";
-import type { Child } from "../../types";
+import { fetchVaccinationsByChild } from "../../services/vaccinationService";
+import { fetchVaccineScheduleByCountry } from "../../services/vaccinationService";
+import { calculateVaccineStats } from "../../utils/vaccineStats";
+import type { Child, VaccineSchedule } from "../../types";
 import toast from "react-hot-toast";
 
 const ParentDashboard = () => {
@@ -10,16 +13,52 @@ const ParentDashboard = () => {
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Stats state
+  const [totalUpcoming, setTotalUpcoming] = useState(0);
+  const [totalMissed, setTotalMissed] = useState(0);
+
   const parentId = user?.uid;
 
   useEffect(() => {
-    if (!parentId) return;
+    if (!parentId || !user?.country) return;
+
+    let schedule: VaccineSchedule[] = [];
+
+    // Fetch schedule once
+    fetchVaccineScheduleByCountry(user.country)
+      .then((data) => {
+        schedule = data;
+      })
+      .catch((err) => console.error("Failed to load schedule", err));
 
     return subscribeChildrenByParent(
       parentId,
-      (data) => {
+      async (data) => {
         setChildren(data);
         setLoadError(null);
+
+        // Calculate stats for all children
+        let upcoming = 0;
+        let missed = 0;
+
+        for (const child of data) {
+          try {
+            const vaxRecords = await fetchVaccinationsByChild(child.id);
+            const stats = calculateVaccineStats(
+              child.dateOfBirth,
+              schedule,
+              vaxRecords,
+            );
+            upcoming += stats.upcoming;
+            missed += stats.missed;
+          } catch (err) {
+            console.error(`Failed to load vaccines for child ${child.id}`, err);
+          }
+        }
+
+        setTotalUpcoming(upcoming);
+        setTotalMissed(missed);
         setLoading(false);
       },
       (err: Error) => {
@@ -31,7 +70,7 @@ const ParentDashboard = () => {
         toast.error(message);
       },
     );
-  }, [parentId]);
+  }, [parentId, user?.country]);
 
   const calculateAge = (dob: Date) => {
     const today = new Date();
@@ -54,7 +93,6 @@ const ParentDashboard = () => {
   return (
     <div className="min-h-screen bg-warm-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -80,13 +118,19 @@ const ParentDashboard = () => {
               {children.length}
             </div>
           </div>
-          <div className="card-clinical p-6">
+          <div className="card-clinical p-6 border-l-4 border-l-warm-500">
             <div className="text-sm text-gray-500 mb-1">Upcoming Vaccines</div>
-            <div className="text-3xl font-bold text-warm-600">—</div>
+            <div className="text-3xl font-bold text-warm-600">
+              {totalUpcoming}
+            </div>
           </div>
-          <div className="card-clinical p-6">
-            <div className="text-sm text-gray-500 mb-1">Appointments</div>
-            <div className="text-3xl font-bold text-clinical-700">—</div>
+          <div className="card-clinical p-6 border-l-4 border-l-red-500">
+            <div className="text-sm text-gray-500 mb-1">Missed Vaccines</div>
+            <div
+              className={`text-3xl font-bold ${totalMissed > 0 ? "text-red-600" : "text-gray-400"}`}
+            >
+              {totalMissed}
+            </div>
           </div>
         </div>
 
@@ -148,7 +192,6 @@ const ParentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Quick Stats - Now Clickable */}
                   <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-100">
                     <Link
                       to={`/parent/children/${child.id}/vaccinations`}

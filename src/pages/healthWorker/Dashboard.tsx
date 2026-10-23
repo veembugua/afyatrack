@@ -2,24 +2,65 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { fetchChildrenByFacility } from "../../services/childService";
-import type { Child } from "../../types";
+import {
+  fetchVaccinationsByChild,
+  fetchVaccineScheduleByCountry,
+} from "../../services/vaccinationService";
+import { calculateVaccineStats } from "../../utils/vaccineStats";
+import type { Child, VaccineSchedule } from "../../types";
 import toast from "react-hot-toast";
 
 const HealthWorkerDashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
+  const [totalUpcoming, setTotalUpcoming] = useState(0);
+  const [totalMissed, setTotalMissed] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.facilityId) return;
+    if (!user?.facilityId || !user?.country) return;
+
+    let schedule: VaccineSchedule[] = [];
+
+    fetchVaccineScheduleByCountry(user.country)
+      .then((data) => {
+        schedule = data;
+      })
+      .catch((err) => console.error("Failed to load schedule", err));
 
     fetchChildrenByFacility(user.facilityId)
-      .then((data) => setChildren(data))
+      .then(async (data) => {
+        setChildren(data);
+
+        let upcoming = 0;
+        let missed = 0;
+
+        for (const child of data) {
+          try {
+            const vaxRecords = await fetchVaccinationsByChild(child.id);
+            const stats = calculateVaccineStats(
+              child.dateOfBirth,
+              schedule,
+              vaxRecords,
+            );
+            upcoming += stats.upcoming;
+            missed += stats.missed;
+          } catch (err) {
+            console.error(`Failed to load vaccines for child ${child.id}`, err);
+          }
+        }
+
+        setTotalUpcoming(upcoming);
+        setTotalMissed(missed);
+        setStatsLoading(false);
+      })
       .catch((err: unknown) => {
         const message =
           err instanceof Error ? err.message : "Failed to load children";
         toast.error(message);
+        setStatsLoading(false);
       });
-  }, [user?.facilityId]);
+  }, [user?.facilityId, user?.country]);
 
   const calculateAge = (dob: Date) => {
     const today = new Date();
@@ -51,8 +92,7 @@ const HealthWorkerDashboard = () => {
               No Facility Assigned
             </h2>
             <p className="text-gray-600 mb-4">
-              Your account does not have a health facility assigned. Please
-              contact an administrator.
+              Your account does not have a health facility assigned.
             </p>
             <button
               onClick={signOut}
@@ -84,6 +124,7 @@ const HealthWorkerDashboard = () => {
           </button>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="card-clinical p-6">
             <div className="text-sm text-gray-500 mb-1">
@@ -93,15 +134,19 @@ const HealthWorkerDashboard = () => {
               {children.length}
             </div>
           </div>
-          <div className="card-clinical p-6">
-            <div className="text-sm text-gray-500 mb-1">Missed Vaccines</div>
-            <div className="text-3xl font-bold text-red-600">0</div>
-          </div>
-          <div className="card-clinical p-6">
-            <div className="text-sm text-gray-500 mb-1">
-              Today's Appointments
+          <div className="card-clinical p-6 border-l-4 border-l-warm-500">
+            <div className="text-sm text-gray-500 mb-1">Upcoming Vaccines</div>
+            <div className="text-3xl font-bold text-warm-600">
+              {statsLoading ? "..." : totalUpcoming}
             </div>
-            <div className="text-3xl font-bold text-warm-600">0</div>
+          </div>
+          <div className="card-clinical p-6 border-l-4 border-l-red-500">
+            <div className="text-sm text-gray-500 mb-1">Missed Vaccines</div>
+            <div
+              className={`text-3xl font-bold ${totalMissed > 0 ? "text-red-600" : "text-gray-400"}`}
+            >
+              {statsLoading ? "..." : totalMissed}
+            </div>
           </div>
         </div>
 
@@ -147,14 +192,12 @@ const HealthWorkerDashboard = () => {
                         <div className="flex justify-end gap-2">
                           <Link
                             to={`/health-worker/children/${child.id}/record-growth`}
-                            aria-label={`Record growth for ${child.firstName} ${child.lastName}`}
                             className="inline-block px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
                           >
                             Record Growth
                           </Link>
                           <Link
                             to={`/health-worker/children/${child.id}/record-vaccine`}
-                            aria-label={`Record vaccination for ${child.firstName} ${child.lastName}`}
                             className="inline-block px-3 py-2 bg-clinical-600 text-white rounded-lg text-sm font-medium hover:bg-clinical-700 transition"
                           >
                             Record Vaccination
