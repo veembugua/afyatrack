@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { addChild } from "../../services/childService";
+import { fetchFacilities } from "../../services/facilityService";
+import type { HealthFacility } from "../../types";
 import toast from "react-hot-toast";
 
 const AddChild = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [facilities, setFacilities] = useState<HealthFacility[]>([]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -15,10 +18,33 @@ const AddChild = () => {
   const [gender, setGender] = useState<"male" | "female">("male");
   const [birthWeight, setBirthWeight] = useState("");
   const [birthLength, setBirthLength] = useState("");
+  const [facilityId, setFacilityId] = useState("");
+
+  // Fetch facilities for the parent's country
+  useEffect(() => {
+    fetchFacilities()
+      .then((data) => {
+        // Filter to only show facilities in the parent's country
+        const filtered = data.filter(
+          (f) => f.country === (user?.country || "KE"),
+        );
+        setFacilities(filtered);
+      })
+      .catch((err: unknown) => {
+        const message =
+          err instanceof Error ? err.message : "Failed to load facilities";
+        toast.error(message);
+      });
+  }, [user?.country]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!facilityId) {
+      toast.error("Please select a health facility");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -28,7 +54,7 @@ const AddChild = () => {
         dateOfBirth: new Date(dateOfBirth),
         gender,
         parentId: user.uid,
-        facilityId: user.facilityId || "",
+        facilityId, // ✅ Now properly assigned
         country: user.country,
         birthWeight: birthWeight ? parseFloat(birthWeight) : undefined,
         birthLength: birthLength ? parseFloat(birthLength) : undefined,
@@ -59,7 +85,8 @@ const AddChild = () => {
         <div className="card-clinical p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Add a Child</h1>
           <p className="text-gray-500 mb-6">
-            Enter your child's details to start tracking their health journey.
+            Enter your child's details and select a health facility for their
+            care.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -132,6 +159,35 @@ const AddChild = () => {
                   👧 Female
                 </button>
               </div>
+            </div>
+
+            {/* ✅ NEW: Facility Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Health Facility <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={facilityId}
+                onChange={(e) => setFacilityId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-clinical-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select a health facility...</option>
+                {facilities.length === 0 && (
+                  <option disabled>
+                    No facilities available for your country
+                  </option>
+                )}
+                {facilities.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name} — {f.region}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                This is where your child will receive vaccinations and
+                check-ups.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

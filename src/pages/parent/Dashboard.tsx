@@ -1,21 +1,37 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { fetchChildrenByParent } from "../../services/childService";
+import { subscribeChildrenByParent } from "../../services/childService";
 import type { Child } from "../../types";
+import toast from "react-hot-toast";
 
 const ParentDashboard = () => {
   const { user, signOut } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const parentId = user?.uid;
 
   useEffect(() => {
-    if (!user) return;
-    fetchChildrenByParent(user.uid)
-      .then(setChildren)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [user]);
+    if (!parentId) return;
+
+    return subscribeChildrenByParent(
+      parentId,
+      (data) => {
+        setChildren(data);
+        setLoadError(null);
+        setLoading(false);
+      },
+      (err: Error) => {
+        const message =
+          err instanceof Error ? err.message : "Failed to load your children";
+        setChildren([]);
+        setLoadError(message);
+        setLoading(false);
+        toast.error(message);
+      },
+    );
+  }, [parentId]);
 
   const calculateAge = (dob: Date) => {
     const today = new Date();
@@ -89,6 +105,13 @@ const ParentDashboard = () => {
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-clinical-600"></div>
+            </div>
+          ) : loadError ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-2">
+                We couldn't load your children's records.
+              </p>
+              <p className="text-sm text-gray-500">{loadError}</p>
             </div>
           ) : children.length === 0 ? (
             <div className="text-center py-12">

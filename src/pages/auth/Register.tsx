@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { registerWithEmail } from "../../services/authService";
 import { fetchFacilities } from "../../services/facilityService";
 import { useAuth } from "../../contexts/AuthContext";
 import type { UserRole, HealthFacility } from "../../types";
 import toast from "react-hot-toast";
+import { getDashboardPath } from "../../utils/routePaths";
 
 const countries = [
   { code: "KE", name: "Kenya" },
@@ -17,10 +18,10 @@ const countries = [
 ];
 
 const Register = () => {
+  // 1. ALL HOOKS AT THE TOP
   const [role, setRole] = useState<UserRole>("parent");
   const [loading, setLoading] = useState(false);
   const [facilities, setFacilities] = useState<HealthFacility[]>([]);
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [name, setName] = useState("");
@@ -42,11 +43,26 @@ const Register = () => {
     }
   }, [role]);
 
-  if (user) {
-    navigate(`/${user.role}`);
-    return null;
+  // 2. EARLY RETURN AFTER HOOKS
+  if (user && user.role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-warm-50">
+        <div className="card-clinical p-8 text-center max-w-md w-full">
+          <h2 className="text-xl font-bold mb-4 text-gray-900">
+            Account already active!
+          </h2>
+          <Link
+            to={getDashboardPath(user.role)}
+            className="text-clinical-600 hover:underline font-medium"
+          >
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
   }
 
+  // 3. HANDLERS AND JSX
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -60,12 +76,16 @@ const Register = () => {
         country,
         facilityId: role === "healthWorker" ? facilityId : undefined,
       });
-      toast.success("Account created! Welcome to AfyaTrack.");
+      toast.success("Account created! Redirecting...");
+
+      // 🚀 NUCLEAR LOOP BREAKER
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 500);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Registration failed";
       toast.error(message);
-    } finally {
       setLoading(false);
     }
   };
@@ -83,7 +103,6 @@ const Register = () => {
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            {/* Role Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 I am a...
@@ -92,11 +111,7 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setRole("parent")}
-                  className={`p-3 rounded-lg border-2 transition ${
-                    role === "parent"
-                      ? "border-clinical-600 bg-clinical-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`p-3 rounded-lg border-2 transition ${role === "parent" ? "border-clinical-600 bg-clinical-50" : "border-gray-200 hover:border-gray-300"}`}
                 >
                   <div className="text-2xl mb-1">👨‍👩‍👧</div>
                   <div className="text-sm font-medium">Parent</div>
@@ -104,11 +119,7 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setRole("healthWorker")}
-                  className={`p-3 rounded-lg border-2 transition ${
-                    role === "healthWorker"
-                      ? "border-clinical-600 bg-clinical-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`p-3 rounded-lg border-2 transition ${role === "healthWorker" ? "border-clinical-600 bg-clinical-50" : "border-gray-200 hover:border-gray-300"}`}
                 >
                   <div className="text-2xl mb-1">👩‍⚕️</div>
                   <div className="text-sm font-medium">Health Worker</div>
@@ -116,7 +127,6 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Full Name
@@ -130,7 +140,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -144,7 +153,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Phone (optional) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone (optional)
@@ -158,7 +166,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -173,7 +180,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Country */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Country
@@ -191,7 +197,6 @@ const Register = () => {
               </select>
             </div>
 
-            {/* Facility selection for health workers */}
             {role === "healthWorker" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

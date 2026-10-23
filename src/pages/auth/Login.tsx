@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
+import { getDashboardPath } from "../../utils/routePaths";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -13,12 +14,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Redirect when user logs in
+  // ✅ Extract the primitive string BEFORE the effect.
+  // This satisfies the linter and prevents infinite loops.
+  const role = user?.role;
+
   useEffect(() => {
-    if (user) {
-      navigate(`/${user.role}`, { replace: true });
+    if (role) {
+      navigate(getDashboardPath(role), { replace: true });
     }
-  }, [user, navigate]);
+  }, [role, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,10 +30,10 @@ const Login = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success("Welcome back!");
+      // The useEffect above will handle the redirect automatically
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
       toast.error(message);
-    } finally {
       setLoading(false);
     }
   };

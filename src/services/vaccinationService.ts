@@ -7,7 +7,6 @@ import {
   updateDoc,
   doc,
   serverTimestamp,
-  orderBy,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { Vaccination, VaccineSchedule } from "../types";
@@ -16,13 +15,14 @@ import type { Vaccination, VaccineSchedule } from "../types";
 export const fetchVaccinationsByChild = async (
   childId: string,
 ): Promise<Vaccination[]> => {
+  // ✅ Removed orderBy to avoid requiring a composite index
   const q = query(
     collection(db, "vaccinations"),
     where("childId", "==", childId),
-    orderBy("scheduledDate", "asc"),
   );
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
+  const vaccinations = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
     scheduledDate:
@@ -34,20 +34,31 @@ export const fetchVaccinationsByChild = async (
         ? new Date(doc.data().administeredDate)
         : undefined),
   })) as Vaccination[];
+
+  // ✅ Sort client-side by scheduledDate (Ascending)
+  return vaccinations.sort((a, b) => {
+    const dateA = new Date(a.scheduledDate).getTime();
+    const dateB = new Date(b.scheduledDate).getTime();
+    return dateA - dateB;
+  });
 };
 
 // Fetch the standard schedule for a country to determine what's due
 export const fetchVaccineScheduleByCountry = async (
   country: string,
 ): Promise<VaccineSchedule[]> => {
+  // ✅ Removed orderBy to avoid requiring a composite index
   const q = query(
     collection(db, "vaccineSchedule"),
     where("country", "==", country),
     where("isActive", "==", true),
-    orderBy("ageInWeeks", "asc"),
   );
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => doc.data() as VaccineSchedule);
+  const schedule = snapshot.docs.map((doc) => doc.data() as VaccineSchedule);
+
+  // ✅ Sort client-side by ageInWeeks (Ascending)
+  return schedule.sort((a, b) => a.ageInWeeks - b.ageInWeeks);
 };
 
 // Record a new vaccination (called by Health Worker)
